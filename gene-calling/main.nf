@@ -9,22 +9,24 @@ Latest modification: Gerrit divided gene and genome calling into two separate ne
 
 chromosomes = params.chromosomes.split(',')
 
-Channel.from( file(params.gvcf_file) )
-        .set{ gvcf_file_cha }
+adme_samples_ch = file("{params.adme_dir}/${params.adme_samples}")
 
-process split_bed_to_chr {
-    tag { "${params.cohort_id}.${chr}.sBtC" }
-    label "bigmem"
-    input:
-        set file(gvcf_file), file(gene_region_bed) from gvcf_file_cha.combine([file(params.gene_region_bed)])
-        each chr from chromosomes
-    output:
-        set chr, file(gvcf_file), file(outBED) into split_bed_to_chr
-    script:
-        inBED = gene_region_bed
-        outBED = "${gene_region_bed.baseName}_chr${chr}.bed"
-        template "split_bed_to_chr.py"
-}
+bed_file = Channel.fromPath("${params.gene_region_dir}/${params.gene_set}-*bed").map {
+  file ->
+    m = file =~ /.*${params.gene_set}-([X0-9]+).bed/  
+  return [m[0][1],file]
+}.filter { it[1].readLines().size()> 0 }
+.view  { it -> it }
+
+
+Channel.fromFilePairs("${params.gvcf_dir}/*.[X1-9]*.g.vcf*/") 
+  { file -> 
+           b = file.baseName
+           m = b =~ /.*\.([X0-9]+)\.g.*/  
+           return m[0][1]
+   }.set{ gvcf_file_cha }
+
+bed_file.join(gvcf_file_cha).map { chr, a, b -> [chr, a, b[0], b[1]]} . set { gt_ch }
 
 
 process run_genotype_gvcf_on_genes {
@@ -32,30 +34,45 @@ process run_genotype_gvcf_on_genes {
     label "bigmem"
     publishDir "${params.out_dir}/", mode: 'copy', overwrite: false
     input:
-        set chr, file(gvcf_file), file(bed_file) from split_bed_to_chr
+      set val(chr), file(bed), file(vcf), file (tbi)  from gt_ch
     output:
-        set chr, file(vcf_out), file(vcf_index_out) into vcf
+      set val(chr), file(vcf_out), file(vcf_index_out) into vcf
     script:
          call_conf = 30 // set default
          if ( params.sample_coverage == "high" )
            call_conf = 30
          else if ( params.sample_coverage == "low" )
            call_conf = 10
-        base = file(file(gvcf_file.baseName).baseName).baseName
-        vcf_out = "${base}_chr${chr}_genes.vcf.gz"
-        vcf_index_out = "${base}_chr${chr}_genes.vcf.gz.tbi"
+        vcf_out = "${params.gene_set}-${chr}-genes.vcf.gz"
+        vcf_index_out = "${vcf_out}.tbi"
+	
         """
-        ${params.tabix_base}/tabix ${gvcf_file}
         ${params.gatk_base}/gatk \
             GenotypeGVCFs \
             -R ${params.ref_seq} \
-            -L ${bed_file} \
-            -V ${gvcf_file} \
+            -L ${bed} \
+            -V ${vcf}\
             -stand-call-conf ${call_conf} \
             -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
             -O ${vcf_out}
         """
 }
+
+process extract_adme {
+  input:
+  set val(chr), file(vcf), file(tbi) from vcf
+  file(adme_samples) from adme_samples_ch
+  output:
+    set file(data), file("${data}.tbi")
+    publishDir "${params.adme_dir}/vcf", mode: 'copy', overwrite: false
+  script:
+    data = "adme-${params.gene_set}-${chr}.vcf.gz"
+    """
+      vcftools --gzvcf $vcf --keep ${adme_samples} --recode --stdout | bgzip > ${data}
+      tabix $data
+    """
+}
+      
 
 workflow.onComplete {
 
@@ -73,3 +90,5 @@ workflow.onComplete {
         """
     )
 }
+
+
