@@ -1,39 +1,57 @@
 #!/usr/bin/env nextflow
 
-chroms = params.chromosomes.split(',')
 
-Channel.from( file(params.gvcf_file) )
-        .set{ gvcf_file_ch }
+
+
+ref_seq = Channel.fromPath(params.ref_seq).toList()
+
+
+
+Channel.fromFilePairs("${params.gvcf_file}") 
+  { file -> 
+           b = file.baseName
+           m = b =~ /.*\.([0-9]+)\.g.*/  
+           return m[0][1]
+  }.set{ gvcf_file_ch }
+
+  // returns a list of pairs -- first in each pair is chromosome number, second is a nested pair [vcf, tbi]
+
+
 
 process run_genotype_gvcf_on_genome {
     tag { "${params.project_name}.${params.cohort_id}.${chr}.rGGoG" }
     label "bigmem"
     publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
     input:		
-    val (gvcf_file) from gvcf_file_ch
-    each chr from chroms
-
+       set val(chr), file (gvcf_file) from gvcf_file_ch
+       file (ref_seq) 
     output:
-    set chr, file("${params.cohort_id}.${chr}.vcf.gz"), file("${params.cohort_id}.${chr}.vcf.gz.tbi") into gg_vcf
+       set chr, file(outf), file("${outf}.tbi") into gg_vcf
 
     script:
-    call_conf = 30 // set default
-    if ( params.sample_coverage == "high" )
-      call_conf = 30
-    else if ( params.sample_coverage == "low" )
-      call_conf = 10
-    """
-    ${params.gatk_base}/gatk --java-options "-Xmx${task.memory.toGiga()}g" \
-    GenotypeGVCFs \
-    -R ${params.ref_seq} \
-    -L $chr \
-    -V ${gvcf_file} \
-    -stand-call-conf ${call_conf} \
-    -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
-    -O "${params.cohort_id}.${chr}.vcf.gz" 
-    """
+       vcf    = gvcf_file[0]
+       index  = gvcf_file[1]
+       ref_fa = "${ref_seq[0].simpleName}.fasta"
+       outf   = "${params.cohort_id}.${chr}.vcf.gz" 
+       call_conf = 30 // set default
+       if ( params.sample_coverage == "high" )  // isn't this static?
+         call_conf = 30
+       else if ( params.sample_coverage == "low" )
+         call_conf = 10
+       """
+        ${params.gatk_base}/gatk --java-options "-Xmx${task.memory.toGiga()}g" \
+        GenotypeGVCFs \
+        -R $ref_fa \
+        -V ${vcf} \
+        -stand-call-conf ${call_conf} \
+        -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest \
+        -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
+        -O $outf
+       """
 }
 
+
+/*
 process run_vqsr_on_snps {
     tag { "${params.project_name}.${params.cohort_id}.${chr}.rVoS" }
     label "bigmem"
@@ -213,3 +231,4 @@ workflow.onComplete {
         """
     )
 }
+*/
