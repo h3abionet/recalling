@@ -1,8 +1,11 @@
 params{
-  project_name = "sbas1"
-  sample_sheet = "/home/gerrit/projects/recalling/genomics-db-import/sahgp-baylor-agvp-sgdp-1kg_african.samplesheet.tsv"
-  cohort_id =  "sbas1"
-  out_dir = "/spaces/gerrit/projects/adme/genomics-db-import/sahgp-baylor-agvp-sgdp-1kg_african/nextflow-out"
+  project_name = "adme"
+  cohort_id =  "sbs1ca"
+  out_dir = "/spaces/gerrit/projects/adme/select-from-combined-gvcf/sahgp-baylor-sgdp-1kg_african-caroline-awigen/nextflow-out"
+  combined_gvcf = "/spaces/gerrit/projects/adme/combine-gvcfs/sahgp-baylor-agvp-sgdp-1kg_african-caroline-awigen/nextflow-out/sbas1ca/sbas1ca.g.vcf.gz"
+  combined_gvcf_index = "/spaces/gerrit/projects/adme/combine-gvcfs/sahgp-baylor-agvp-sgdp-1kg_african-caroline-awigen/nextflow-out/sbas1ca/sbas1ca.g.vcf.gz.tbi"
+
+  exclude_samples = "/spaces/gerrit/projects/adme/important-files/exclude-all.list"
 
   // GATK specific settings
   gatk_base = "/spaces/gerrit/projects/adme/soft/gatk-4.0.8.1"
@@ -25,9 +28,10 @@ process{
     time = { 96.h * task.attempt }
 
     withLabel: bigmem{
-        cpus = { 4 * task.attempt }
-        memory = { 32.GB * task.attempt }
-        time = { 28.d * task.attempt }
+        cpus = { 1 * task.attempt }
+        memory = { 20.GB * task.attempt }
+        time = { 28.d }
+        clusterOptions = { "--mail-user=gerrit.botha@uct.ac.za" }
     }
 }
 
@@ -57,6 +61,6 @@ profiles {
 
 trace {
     enabled = true
-    file = "${params.project_name}.trace.txt"
+    file = "${params.project_name}.${params.cohort_id}.trace.txt"
 }
 
