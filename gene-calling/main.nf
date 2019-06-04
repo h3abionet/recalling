@@ -9,9 +9,9 @@ Latest modification: Gerrit divided gene and genome calling into two separate ne
 
 chromosomes = params.chromosomes.split(',')
 
-adme_samples_ch = file("{params.adme_dir}/${params.adme_samples}")
+adme_samples_ch = file("${params.adme_dir}/${params.adme_samples}")
 
-bed_file = Channel.fromPath("${params.gene_region_dir}/${params.gene_set}-*bed").map {
+bed_file = Channel.fromPath("${params.gene_region_dir}/${params.gene_set}-*.bed").map {
   file ->
     m = file =~ /.*${params.gene_set}-([X0-9]+).bed/  
   return [m[0][1],file]
@@ -47,7 +47,7 @@ process run_genotype_gvcf_on_genes {
         vcf_index_out = "${vcf_out}.tbi"
 	
         """
-        ${params.gatk_base}/gatk \
+        /usr/bin/time ${params.gatk_base}/gatk \
             GenotypeGVCFs \
             -R ${params.ref_seq} \
             -L ${bed} \
