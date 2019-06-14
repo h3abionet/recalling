@@ -48,6 +48,7 @@ process run_genotype_gvcf_on_genome {
         -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
         -O $outf
        """
+}
 
 gg_vcf.toList().set{ concat_ready  }
 
