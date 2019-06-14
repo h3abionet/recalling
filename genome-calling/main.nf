@@ -1,15 +1,60 @@
 #!/usr/bin/env nextflow
 
-chroms = params.chromosomes.split(',')
-
 Channel.from( file(params.gvcf_file) )
         .set{ gvcf_file_ch }
+
+
+ref_seq = Channel.fromPath(params.ref_seq).toList()
+
+
+
+Channel.fromFilePairs("${params.gvcf_file}")
+       { file ->
+         b = file.baseName
+         m = b =~ /.*\.([0-9]+)\.g.*/
+         return m[0][1]
+        }.set{ gvcf_file_ch }
+
+// returns a list of pairs -- first in each pair is chromosome number, second is a nested pair [vcf, tbi]
 
 process run_genotype_gvcf_on_genome {
     tag { "${params.project_name}.${params.cohort_id}.${chr}.rGGoG" }
     label "bigmem"
     publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
-    input:		
+    input:
+       set val(chr), file (gvcf_file) from gvcf_file_ch
+       file (ref_seq)
+    output:
+       set chr, file(outf), file("${outf}.tbi") into gg_vcf_set
+       file(outf) into gg_vcf
+
+    script:
+       vcf    = gvcf_file[0]
+       index  = gvcf_file[1]
+       ref_fa = "${ref_seq[0].simpleName}.fasta"
+       outf   = "${params.cohort_id}.${chr}.vcf.gz"
+       call_conf = 30 // set default
+       if ( params.sample_coverage == "high" )  // isn't this static?
+         call_conf = 30
+       else if ( params.sample_coverage == "low" )
+         call_conf = 10
+       """
+        ${params.gatk_base}/gatk --java-options "-Xmx${task.memory.toGiga()}g" \
+        GenotypeGVCFs \
+        -R $ref_fa \
+        -V ${vcf} \
+        -stand-call-conf ${call_conf} \
+        -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest \
+        -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
+        -O $outf
+       """
+
+
+process run_genotype_gvcf_on_genome {
+    tag { "${params.project_name}.${params.cohort_id}.${chr}.rGGoG" }
+    label "bigmem"
+    publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
+    input:
     val (gvcf_file) from gvcf_file_ch
     each chr from chroms
 
@@ -31,7 +76,7 @@ process run_genotype_gvcf_on_genome {
     -V ${gvcf_file} \
     -stand-call-conf ${call_conf} \
     -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
-    -O "${params.cohort_id}.${chr}.vcf.gz" 
+    -O "${params.cohort_id}.${chr}.vcf.gz"
     """
 }
 
@@ -41,7 +86,7 @@ process run_concat_vcf {
      tag { "${params.project_name}.${params.cohort_id}.rCV" }
      label "bigmem"
      publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
- 
+
      input:
      file(vcf) from concat_ready
 
@@ -72,12 +117,12 @@ process run_concat_vcf {
      echo "${vcf.join('\n')}" | grep "\\.20\\.vcf.gz" >> ${params.cohort_id}.vcf.list
      echo "${vcf.join('\n')}" | grep "\\.21\\.vcf.gz" >> ${params.cohort_id}.vcf.list
      echo "${vcf.join('\n')}" | grep "\\.22\\.vcf.gz" >> ${params.cohort_id}.vcf.list
-    
+
      ${params.gatk_base}/gatk --java-options "-Xmx${task.memory.toGiga()}g"  \
      GatherVcfs \
      -I ${params.cohort_id}.vcf.list \
      -O ${params.cohort_id}.vcf.gz # GatherVCF does not index the VCF. The VCF will be indexed in the next tabix operation.
-     ${params.tabix_base}/tabix -p vcf ${params.cohort_id}.vcf.gz 
+     ${params.tabix_base}/tabix -p vcf ${params.cohort_id}.vcf.gz
      """
 }
 
@@ -85,7 +130,7 @@ process run_vqsr_on_snps {
     tag { "${params.project_name}.${params.cohort_id}.rVoS" }
     label "bigmem"
     publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
-    input:		
+    input:
     set file(vcf), file(vcf_index) from combined_calls
 
     output:
@@ -119,7 +164,7 @@ process run_apply_vqsr_on_snps {
     tag { "${params.project_name}.${params.cohort_id}.rAVoS" }
     label "bigmem"
     publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
-    input:		
+    input:
     set file(vcf), file(vcf_index), file(snp_recal), file(snp_recal_index), file(snp_tranches) from snps_vqsr_recal
 
     output:
@@ -175,7 +220,7 @@ process run_apply_vqsr_on_indels {
     tag { "${params.project_name}.${params.cohort_id}.rAVoI" }
     label "bigmem"
     publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
-    input:		
+    input:
     set file(vcf), file(vcf_index), file(indel_recal), file(indel_recal_index), file(indel_tranches) from indel_vqsr_recal
 
     output:
