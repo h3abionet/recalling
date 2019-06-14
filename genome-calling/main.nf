@@ -49,37 +49,6 @@ process run_genotype_gvcf_on_genome {
         -O $outf
        """
 
-
-process run_genotype_gvcf_on_genome {
-    tag { "${params.project_name}.${params.cohort_id}.${chr}.rGGoG" }
-    label "bigmem"
-    publishDir "${params.out_dir}/${params.cohort_id}/genome-calling", mode: 'copy', overwrite: false
-    input:
-    val (gvcf_file) from gvcf_file_ch
-    each chr from chroms
-
-    output:
-    set chr, file("${params.cohort_id}.${chr}.vcf.gz"), file("${params.cohort_id}.${chr}.vcf.gz.tbi") into gg_vcf_set
-    file("${params.cohort_id}.${chr}.vcf.gz") into gg_vcf
-
-    script:
-    call_conf = 30 // set default
-    if ( params.sample_coverage == "high" )
-      call_conf = 30
-    else if ( params.sample_coverage == "low" )
-      call_conf = 10
-    """
-    ${params.gatk_base}/gatk --java-options "-Xmx${task.memory.toGiga()}g" \
-    GenotypeGVCFs \
-    -R ${params.ref_seq} \
-    -L $chr \
-    -V ${gvcf_file} \
-    -stand-call-conf ${call_conf} \
-    -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
-    -O "${params.cohort_id}.${chr}.vcf.gz"
-    """
-}
-
 gg_vcf.toList().set{ concat_ready  }
 
 process run_concat_vcf {
