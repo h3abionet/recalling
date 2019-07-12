@@ -3,10 +3,7 @@
 Channel.from( file(params.gvcf_file) )
         .set{ gvcf_file_ch }
 
-
 ref_seq = Channel.fromPath(params.ref_seq).toList()
-
-
 
 Channel.fromFilePairs("${params.gvcf_file}")
        { file ->
@@ -87,6 +84,9 @@ process run_concat_vcf {
      echo "${vcf.join('\n')}" | grep "\\.20\\.vcf.gz" >> ${params.cohort_id}.vcf.list
      echo "${vcf.join('\n')}" | grep "\\.21\\.vcf.gz" >> ${params.cohort_id}.vcf.list
      echo "${vcf.join('\n')}" | grep "\\.22\\.vcf.gz" >> ${params.cohort_id}.vcf.list
+     echo "${vcf.join('\n')}" | grep "\\.X\\.vcf.gz" >> ${params.cohort_id}.vcf.list
+     echo "${vcf.join('\n')}" | grep "\\.Y\\.vcf.gz" >> ${params.cohort_id}.vcf.list
+     echo "${vcf.join('\n')}" | grep "\\.MT\\.vcf.gz" >> ${params.cohort_id}.vcf.list
 
      ${params.gatk_base}/gatk --java-options "-Xmx${task.memory.toGiga()}g"  \
      GatherVcfs \
