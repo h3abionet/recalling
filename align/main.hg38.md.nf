@@ -24,7 +24,7 @@ process print_sample_info {
 
 process run_bwa {
     tag { "${params.project_name}.${sample_id}.rBwa" }
-    memory { 4.GB * task.attempt }
+    memory { 64.GB * task.attempt }
     cpus { "${params.bwa_threads}" }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
     label 'bwa_samtools'
@@ -55,7 +55,7 @@ process run_bwa {
 
 process run_mark_duplicates {
     tag { "${params.project_name}.${sample_id}.rMD" }
-    memory { 70.GB * task.attempt }
+    memory { 192.GB * task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
     input:
@@ -67,7 +67,7 @@ process run_mark_duplicates {
     script:
       mem = task.memory.toGiga() - 2
     """
-    ${params.gatk_base}/gatk --java-options "-XX:+UseSerialGC -Xss156k -Xms4g -Xmx${mem}g"  \
+    ${params.gatk_base}/gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms4g -Xmx${mem}g"  \
     MarkDuplicates \
     --MAX_RECORDS_IN_RAM 5000 \
     --INPUT ${bam_file} \
@@ -81,7 +81,7 @@ process run_mark_duplicates {
 
 process run_create_recalibration_table {
     tag { "${params.project_name}.${sample_id}.rCRT" }
-    memory { 40.GB * task.attempt }
+    memory { 16 task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
     input:
@@ -107,7 +107,7 @@ process run_create_recalibration_table {
 
 process run_recalibrate_bam {
     tag { "${params.project_name}.${sample_id}.rRB" }
-    memory { 40.GB * task.attempt }
+    memory { 16.GB * task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
     input:
