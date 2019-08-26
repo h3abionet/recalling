@@ -131,8 +131,8 @@ process run_recalibrate_bam {
     """
 }
 
-process run_samtools_stats {
-    tag { "${params.project_name}.${sample_id}.rSS" }
+process run_samtools_flagstat {
+    tag { "${params.project_name}.${sample_id}.rSF" }
     memory { 4.GB * task.attempt } 
     cpus { "${params.bwa_threads}" }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
@@ -142,12 +142,12 @@ process run_samtools_stats {
     set val(sample_id), file(bam_file) from recal_bam
 
     output:
-    set val(sample_id), file("${sample_id}.md.recal.stats")  into recal_stats
+    set val(sample_id), file("${sample_id}.md.recal.flagstat")  into recal_stats
 
     """
-    samtools stats  \
+    samtools flagstat  \
     --threads ${params.bwa_threads} \
-    ${bam_file} > ${sample_id}.md.recal.stats  \
+    ${bam_file} > ${sample_id}.md.recal.flagstat  \
     """
 }
 
