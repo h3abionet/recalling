@@ -32,6 +32,7 @@ process run_genotype_gvcf_on_genome {
     -V ${gvcf_file} \
     -stand-call-conf ${call_conf} \
     -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
+    --allow-old-rms-mapping-quality-annotation-data \
     -O "${params.cohort_id}.${chr}.vcf.gz"
     """
 }
@@ -101,10 +102,10 @@ process run_vqsr_on_snps {
     ${params.gatk_base}/gatk --java-options "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
     VariantRecalibrator \
    -R ${params.ref_seq} \
-   -resource hapmap,known=false,training=true,truth=true,prior=15.0:${params.hapmap} \
-   -resource omni,known=false,training=true,truth=true,prior=12.0:${params.omni} \
-   -resource 1000G,known=false,training=true,truth=false,prior=10.0:${params.phase1_snps} \
-   -resource dbsnp,known=true,training=false,truth=false,prior=2.0:${params.dbsnp} \
+   -resource hapmap,known=false,training=true,truth=true,prior=15.0 ${params.hapmap} \
+   -resource omni,known=false,training=true,truth=true,prior=12.0 ${params.omni} \
+   -resource 1000G,known=false,training=true,truth=false,prior=10.0 ${params.phase1_snps} \
+   -resource dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.dbsnp} \
    -an DP \
    -an FS \
    -an SOR \
@@ -161,8 +162,8 @@ process run_vqsr_on_indels {
     ${params.gatk_base}/gatk --java-options "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
     VariantRecalibrator \
    -R ${params.ref_seq} \
-   -resource mills,known=false,training=true,truth=true,prior=12.0:${params.golden_indels} \
-   -resource dbsnp,known=true,training=false,truth=false,prior=2.0:${params.dbsnp} \
+   -resource mills,known=false,training=true,truth=true,prior=12.0 ${params.golden_indels} \
+   -resource dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.dbsnp} \
    -an DP \
    -an FS \
    -an SOR \
