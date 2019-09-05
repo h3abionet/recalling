@@ -81,7 +81,7 @@ process run_mark_duplicates {
 
 process run_create_recalibration_table {
     tag { "${params.project_name}.${sample_id}.rCRT" }
-    memory { 16 * task.attempt }
+    memory { 16.GB * task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
     input:
