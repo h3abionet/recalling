@@ -26,7 +26,7 @@ process print_sample_info {
 
 process run_haplotype_caller_on_autosomes {
     tag { "${params.project_name}.${sample_id}.${chr}.rHCoA" }
-    memory { 8.GB * task.attempt }
+    memory { 4.GB * task.attempt }
     cpus { 4 }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -51,7 +51,7 @@ process run_haplotype_caller_on_autosomes {
     -I $bam_file \
     --emit-ref-confidence GVCF \
     --dbsnp ${params.dbsnp_sites} \
-    --L chr$chr \
+    --L $chr \
     --genotyping-mode DISCOVERY \
     -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
     -stand-call-conf ${call_conf} \
@@ -67,7 +67,7 @@ samples_4.filter{it[1] == 'F'}.set{samples_female}
 // Males
 process run_haplotype_caller_on_x_par1_male {
      tag { "${params.project_name}.${sample_id}.rHCoXP1M" }
-     memory { 8.GB * task.attempt }
+     memory { 4.GB * task.attempt }
      cpus { 4 }
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -91,7 +91,7 @@ process run_haplotype_caller_on_x_par1_male {
      -I $bam_file \
      --emit-ref-confidence GVCF \
      --dbsnp ${params.dbsnp_sites} \
-     --L chrX:10001-2781479 \
+     --L X:60001-2699520 \
      --genotyping-mode DISCOVERY \
      -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
      -stand-call-conf ${call_conf} \
@@ -126,7 +126,7 @@ process run_haplotype_caller_on_x_par2_male {
      -I $bam_file \
      --emit-ref-confidence GVCF \
      --dbsnp ${params.dbsnp_sites} \
-     --L chrX:155701383-156030895 \
+     --L X:154931044-155260560 \
      --genotyping-mode DISCOVERY \
      -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
      -stand-call-conf ${call_conf} \
@@ -137,7 +137,7 @@ process run_haplotype_caller_on_x_par2_male {
 
 process run_haplotype_caller_on_x_nonpar_male {
      tag { "${params.project_name}.${sample_id}.rHCoXNPM" }
-     memory { 8.GB * task.attempt }
+     memory { 4.GB * task.attempt }
      cpus { 4 }
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -161,7 +161,7 @@ process run_haplotype_caller_on_x_nonpar_male {
      -I $bam_file \
      --emit-ref-confidence GVCF \
      --dbsnp ${params.dbsnp_sites} \
-     --L chrX -XL chrX:10001-2781479 -XL chrX:155701383-156030895 \
+     --L X -XL X:60001-2699520 -XL X:154931044-155260560 \
      --genotyping-mode DISCOVERY \
      -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
      -stand-call-conf ${call_conf} \
@@ -172,7 +172,7 @@ process run_haplotype_caller_on_x_nonpar_male {
 
 process run_haplotype_caller_on_y_par1_male {
      tag { "${params.project_name}.${sample_id}.rHCoYP1M" }
-     memory { 8.GB * task.attempt }
+     memory { 4.GB * task.attempt }
      cpus { 4 }
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -196,7 +196,7 @@ process run_haplotype_caller_on_y_par1_male {
      -I $bam_file \
      --emit-ref-confidence GVCF \
      --dbsnp ${params.dbsnp_sites} \
-     --L chrY:10001-2781479 \
+     --L Y:10001-2649520 \
      --genotyping-mode DISCOVERY \
      -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
      -stand-call-conf ${call_conf} \
@@ -207,7 +207,7 @@ process run_haplotype_caller_on_y_par1_male {
 
 process run_haplotype_caller_on_y_par2_male {
      tag { "${params.project_name}.${sample_id}.rHCoYP2M" }
-     memory { 8.GB * task.attempt }
+     memory { 4.GB * task.attempt }
      cpus { 4 }
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -231,7 +231,7 @@ process run_haplotype_caller_on_y_par2_male {
      -I $bam_file \
      --emit-ref-confidence GVCF \
      --dbsnp ${params.dbsnp_sites} \
-     --L chrY:56887903-57217415 \
+     --L Y:59034050-59363566 \
      --genotyping-mode DISCOVERY \
      -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
      -stand-call-conf ${call_conf} \
@@ -242,7 +242,7 @@ process run_haplotype_caller_on_y_par2_male {
 
 process run_haplotype_caller_on_y_nonpar_male {
      tag { "${params.project_name}.${sample_id}.rHCoYNPM" }
-     memory { 8.GB * task.attempt }
+     memory { 4.GB * task.attempt }
      cpus { 4 }
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -266,7 +266,7 @@ process run_haplotype_caller_on_y_nonpar_male {
      -I $bam_file \
      --emit-ref-confidence GVCF \
      --dbsnp ${params.dbsnp_sites} \
-     --L chrY -XL chrY:10001-2781479 -XL chrY:56887903-57217415 \
+     --L Y -XL Y:10001-2649520 -XL Y:59034050-59363566 \
      --genotyping-mode DISCOVERY \
      -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
      -stand-call-conf ${call_conf} \
@@ -278,7 +278,7 @@ process run_haplotype_caller_on_y_nonpar_male {
 // Females
 process run_haplotype_caller_on_x_female {
      tag { "${params.project_name}.${sample_id}.rHCoXF" }
-     memory { 8.GB * task.attempt }
+     memory { 4.GB * task.attempt }
      cpus { 4 }
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -302,7 +302,7 @@ process run_haplotype_caller_on_x_female {
      -I $bam_file \
      --emit-ref-confidence GVCF \
      --dbsnp ${params.dbsnp_sites} \
-     --L chrX \
+     --L X \
      --genotyping-mode DISCOVERY \
      -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
      -stand-call-conf ${call_conf} \
@@ -314,7 +314,7 @@ process run_haplotype_caller_on_x_female {
 
 process run_haplotype_caller_on_mt {
     tag { "${params.project_name}.${sample_id}.rHCoMT" }
-    memory { 8.GB * task.attempt }
+    memory { 4.GB * task.attempt }
     cpus { 4 }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -338,7 +338,7 @@ process run_haplotype_caller_on_mt {
     -I $bam_file \
     --emit-ref-confidence GVCF \
     --dbsnp ${params.dbsnp_sites} \
-    --L chrM \
+    --L MT \
     --genotyping-mode DISCOVERY \
     -A Coverage -A FisherStrand -A StrandOddsRatio -A MappingQualityRankSumTest -A QualByDepth -A RMSMappingQuality -A ReadPosRankSumTest \
     -stand-call-conf ${call_conf} \
