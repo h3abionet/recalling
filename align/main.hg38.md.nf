@@ -39,7 +39,7 @@ process run_bwa {
     nr_threads = task.cpus - 1
     readgroup_info="@RG\\tID:$sample_id.0\\tLB:LIBA\\tSM:$sample_id\\tPL:Illumina"
     """
-    ${params.bwa_base}/bwa mem \
+    bwa mem \
     -R \"${readgroup_info}\" \
     -t ${nr_threads}  \
     -M \
@@ -57,6 +57,7 @@ process run_mark_duplicates {
     tag { "${params.project_name}.${sample_id}.rMD" }
     memory { 192.GB * task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
+    label 'gatk'
 
     input:
     set val(sample_id), file(bam_file) from raw_bam
@@ -67,7 +68,7 @@ process run_mark_duplicates {
     script:
       mem = task.memory.toGiga() - 2
     """
-    ${params.gatk_base}/gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms4g -Xmx${mem}g"  \
+    gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms4g -Xmx${mem}g"  \
     MarkDuplicates \
     --MAX_RECORDS_IN_RAM 5000 \
     --INPUT ${bam_file} \
@@ -83,7 +84,8 @@ process run_create_recalibration_table {
     tag { "${params.project_name}.${sample_id}.rCRT" }
     memory { 16.GB * task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
-
+    label 'gatk'
+    
     input:
     set val(sample_id), file(bam_file), file(bam_file_index) from md_bam
 
@@ -93,7 +95,7 @@ process run_create_recalibration_table {
     script:
       mem = task.memory.toGiga() - 2
     """
-    ${params.gatk_base}/gatk --java-options  "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
+    gatk --java-options  "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
     BaseRecalibrator \
     --input ${bam_file} \
     --output ${sample_id}.recal.table \
@@ -109,7 +111,8 @@ process run_recalibrate_bam {
     tag { "${params.project_name}.${sample_id}.rRB" }
     memory { 16.GB * task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
-
+    label 'gatk'
+ 
     input:
     set val(sample_id), file(bam_file), file(bam_file_index), file(recal_table_file) from recal_table
 
@@ -120,7 +123,7 @@ process run_recalibrate_bam {
     script:
       mem = task.memory.toGiga() - 2
     """
-    ${params.gatk_base}/gatk --java-options  "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
+    gatk --java-options  "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
      ApplyBQSR \
     --input ${bam_file} \
     --output ${sample_id}.md.recal.bam \
