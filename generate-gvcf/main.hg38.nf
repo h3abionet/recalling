@@ -27,7 +27,8 @@ process print_sample_info {
 process run_haplotype_caller_on_autosomes {
     tag { "${params.project_name}.${sample_id}.${chr}.rHCoA" }
     memory { 8.GB * task.attempt }
-    cpus { 4 }
+    cpus { 2 }
+    label 'gatk'
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
     input:
@@ -44,8 +45,9 @@ process run_haplotype_caller_on_autosomes {
       call_conf = 30
     else if ( params.sample_coverage == "low" )
       call_conf = 10
+    mem = task.memory.toGiga() - 4
     """
-    ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+    gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
     HaplotypeCaller \
     -R ${params.ref_seq} \
     -I $bam_file \
@@ -68,7 +70,8 @@ samples_4.filter{it[1] == 'F'}.set{samples_female}
 process run_haplotype_caller_on_x_par1_male {
      tag { "${params.project_name}.${sample_id}.rHCoXP1M" }
      memory { 8.GB * task.attempt }
-     cpus { 4 }
+     cpus { 2 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -84,8 +87,9 @@ process run_haplotype_caller_on_x_par1_male {
        call_conf = 30
      else if ( params.sample_coverage == "low" )
        call_conf = 10
+     mem = task.memory.toGiga() - 4 
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
      HaplotypeCaller \
      -R ${params.ref_seq} \
      -I $bam_file \
@@ -102,8 +106,9 @@ process run_haplotype_caller_on_x_par1_male {
 
 process run_haplotype_caller_on_x_par2_male {
      tag { "${params.project_name}.${sample_id}.rHCoXP2M" }
-     memory { 4.GB * task.attempt }
-     cpus { 4 }
+     memory { 8.GB * task.attempt }
+     cpus { 2 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -118,9 +123,10 @@ process run_haplotype_caller_on_x_par2_male {
      if ( params.sample_coverage == "high" )
        call_conf = 30
      else if ( params.sample_coverage == "low" )
-       call_conf = 10
+       call_conf = 10a
+     mem = task.memory.toGiga() - 4
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
      HaplotypeCaller \
      -R ${params.ref_seq} \
      -I $bam_file \
@@ -138,7 +144,8 @@ process run_haplotype_caller_on_x_par2_male {
 process run_haplotype_caller_on_x_nonpar_male {
      tag { "${params.project_name}.${sample_id}.rHCoXNPM" }
      memory { 8.GB * task.attempt }
-     cpus { 4 }
+     cpus { 2 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -154,8 +161,9 @@ process run_haplotype_caller_on_x_nonpar_male {
        call_conf = 30
      else if ( params.sample_coverage == "low" )
        call_conf = 10
+     mem = task.memory.toGiga() - 4
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
      HaplotypeCaller \
      -R ${params.ref_seq} \
      -I $bam_file \
@@ -173,7 +181,8 @@ process run_haplotype_caller_on_x_nonpar_male {
 process run_haplotype_caller_on_y_par1_male {
      tag { "${params.project_name}.${sample_id}.rHCoYP1M" }
      memory { 8.GB * task.attempt }
-     cpus { 4 }
+     cpus { 2 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -189,8 +198,9 @@ process run_haplotype_caller_on_y_par1_male {
        call_conf = 30
      else if ( params.sample_coverage == "low" )
        call_conf = 10
+     mem = task.memory.toGiga() - 4
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
      HaplotypeCaller \
      -R ${params.ref_seq} \
      -I $bam_file \
@@ -208,7 +218,8 @@ process run_haplotype_caller_on_y_par1_male {
 process run_haplotype_caller_on_y_par2_male {
      tag { "${params.project_name}.${sample_id}.rHCoYP2M" }
      memory { 8.GB * task.attempt }
-     cpus { 4 }
+     cpus { 2 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -224,8 +235,9 @@ process run_haplotype_caller_on_y_par2_male {
        call_conf = 30
      else if ( params.sample_coverage == "low" )
        call_conf = 10
+     mem = task.memory.toGiga() - 4
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
      HaplotypeCaller \
      -R ${params.ref_seq} \
      -I $bam_file \
@@ -243,7 +255,8 @@ process run_haplotype_caller_on_y_par2_male {
 process run_haplotype_caller_on_y_nonpar_male {
      tag { "${params.project_name}.${sample_id}.rHCoYNPM" }
      memory { 8.GB * task.attempt }
-     cpus { 4 }
+     cpus { 2 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -259,8 +272,9 @@ process run_haplotype_caller_on_y_nonpar_male {
        call_conf = 30
      else if ( params.sample_coverage == "low" )
        call_conf = 10
+     mem = task.memory.toGiga() - 4
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
      HaplotypeCaller \
      -R ${params.ref_seq} \
      -I $bam_file \
@@ -279,7 +293,8 @@ process run_haplotype_caller_on_y_nonpar_male {
 process run_haplotype_caller_on_x_female {
      tag { "${params.project_name}.${sample_id}.rHCoXF" }
      memory { 8.GB * task.attempt }
-     cpus { 4 }
+     cpus { 2 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -295,8 +310,9 @@ process run_haplotype_caller_on_x_female {
        call_conf = 30
      else if ( params.sample_coverage == "low" )
        call_conf = 10
+     mem = task.memory.toGiga() - 4
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g" \
      HaplotypeCaller \
      -R ${params.ref_seq} \
      -I $bam_file \
@@ -315,7 +331,8 @@ process run_haplotype_caller_on_x_female {
 process run_haplotype_caller_on_mt {
     tag { "${params.project_name}.${sample_id}.rHCoMT" }
     memory { 8.GB * task.attempt }
-    cpus { 4 }
+    cpus { 2 }
+    label 'gatk'
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
     input:
@@ -331,8 +348,9 @@ process run_haplotype_caller_on_mt {
       call_conf = 30
     else if ( params.sample_coverage == "low" )
       call_conf = 10
+    mem = task.memory.toGiga() - 4
     """
-    ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_hc_mem}"  \
+    gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms2g -Xmx${mem}g"  \
     HaplotypeCaller \
     -R ${params.ref_seq} \
     -I $bam_file \
@@ -352,7 +370,7 @@ autosome_calls.mix(mt_calls,x_par1_calls,x_nonpar_calls,x_par2_calls,x_calls,y_p
 process combine_gVCFs {
      tag { "${params.project_name}.${sample_id}.cCgVCF" }
      memory { 4.GB * task.attempt }
-     cpus { 20 }
+     label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
      input:
@@ -363,16 +381,17 @@ process combine_gVCFs {
 	   set val(sample_id), file("${sample_id}.g.vcf.gz.tbi") into combine_calls_indexes
 
      script:
+     mem = task.memory.toGiga() - 2
      if (gvcf.size() == 29) // working with a male sample
      """
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_sv_mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xmx${mem}"  \
      SortVcf \
      -I ${sample_id}.X_PAR1.g.vcf.gz \
      -I ${sample_id}.X_PAR2.g.vcf.gz \
      -I ${sample_id}.X_nonPAR.g.vcf.gz \
      -O ${sample_id}.X.g.vcf.gz
 
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_sv_mem}"  \
+     gatk --java-options "-Xms1g -Xmx${mem}g"  \
      SortVcf \
      -I ${sample_id}.Y_PAR1.g.vcf.gz \
      -I ${sample_id}.Y_PAR2.g.vcf.gz \
@@ -405,12 +424,12 @@ process combine_gVCFs {
      echo ${sample_id}.Y.g.vcf.gz >> ${sample_id}.gvcf.list
      echo "${gvcf.join('\n')}" | grep "\\.MT\\.g\\.vcf\\.gz" >> ${sample_id}.gvcf.list
     
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_gv_mem}"  \
+     gatk --java-options "-Xms1g -Xmx${mem}g"  \
      GatherVcfs \
      -I ${sample_id}.gvcf.list \
      -O ${sample_id}.g.vcf.gz # GatherVCF does not index the VCF. The VCF will be indexed in the next tabix operation.
 
-     ${params.tabix_base}/tabix -p vcf ${sample_id}.g.vcf.gz 
+     tabix -p vcf ${sample_id}.g.vcf.gz 
      """
      else if (gvcf.size() == 24) // working with a female  sample
      """
@@ -439,12 +458,12 @@ process combine_gVCFs {
      echo "${gvcf.join('\n')}" | grep "\\.X\\.g.vcf.gz" >> ${sample_id}.gvcf.list
      echo "${gvcf.join('\n')}" | grep "\\.MT\\.g\\.vcf\\.gz" >> ${sample_id}.gvcf.list
 
-     ${params.gatk_base}/gatk --java-options "-Xmx${params.gatk_gv_mem}"  \
+     gatk --java-options "-Xms1g -Xmx${mem}g"  \
      GatherVcfs \
      -I ${sample_id}.gvcf.list \
      -O ${sample_id}.g.vcf.gz # GatherVCF does not index the VCF. The VCF will be indexed in the next tabix operation.
      
-     ${params.tabix_base}/tabix -p vcf ${sample_id}.g.vcf.gz
+     tabix -p vcf ${sample_id}.g.vcf.gz
      """
 }
 
