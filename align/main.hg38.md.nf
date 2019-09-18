@@ -55,7 +55,7 @@ process run_bwa {
 
 process run_mark_duplicates {
     tag { "${params.project_name}.${sample_id}.rMD" }
-    memory { 192.GB * task.attempt }
+    memory { 16.GB * task.attempt }
     publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
     label 'gatk'
 
@@ -66,7 +66,7 @@ process run_mark_duplicates {
     set val(sample_id), file("${sample_id}.md.bam"), file("${sample_id}.md.bai")  into md_bam
    
     script:
-      mem = task.memory.toGiga() - 2
+      mem = task.memory.toGiga() - 4
     """
     gatk --java-options "-XX:+UseSerialGC -Xss456k -Xms4g -Xmx${mem}g"  \
     MarkDuplicates \
@@ -93,13 +93,13 @@ process run_create_recalibration_table {
     set val(sample_id), file("${sample_id}.md.bam"), file("${sample_id}.md.bai"), file("${sample_id}.recal.table")  into recal_table
     
     script:
-      mem = task.memory.toGiga() - 2
+      mem = task.memory.toGiga() - 4
     """
     gatk --java-options  "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
     BaseRecalibrator \
     --input ${bam_file} \
     --output ${sample_id}.recal.table \
-    --TMP_DIR ${params.gatk_tmp_dir} \
+    --tmp-dir ${params.gatk_tmp_dir} \
     -R ${params.ref_seq} \
     --known-sites ${params.dbsnp} \
     --known-sites ${params.known_indels_1} \
@@ -121,13 +121,13 @@ process run_recalibrate_bam {
     set val(sample_id), file("${sample_id}.md.recal.bai")  into recal_bam_index
     
     script:
-      mem = task.memory.toGiga() - 2
+      mem = task.memory.toGiga() - 4
     """
     gatk --java-options  "-XX:+UseSerialGC -Xms4g -Xmx${mem}g" \
      ApplyBQSR \
     --input ${bam_file} \
     --output ${sample_id}.md.recal.bam \
-    --TMP_DIR ${params.gatk_tmp_dir} \
+    --tmp-dir ${params.gatk_tmp_dir} \
     -R ${params.ref_seq} \
     --create-output-bam-index true \
     --bqsr-recal-file ${recal_table_file}
