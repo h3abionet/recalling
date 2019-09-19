@@ -1,6 +1,6 @@
 # Intro
 
-The Nextflow script run HaplotypeCaller on BAMs. It has been tested on the Wits cluster and contains a profile setting for Wits. For CBIO we just need to add another profile. For the processing of 1KG on CHPC the code would need to be rewritten.
+The Nextflow script run HaplotypeCaller on BAMs. It has been tested on the Wits and Ilifu cluster and contains a profile settings for both. 
 
 Please see `nextflow.conf` for GATK version and references databases used.
 
@@ -21,11 +21,11 @@ Below is the sample sheet format. The sample sheet should be a tab delimmted tex
 ## To run
 
 For each dataset
-1) Create your sample sheet. E.g. `sahgp.samplesheet.txt` for the SAHGP dataset.
-2) Modify your `nextflow.config` to read the `sahgp.samplesheet.tsv` and specify the output directory e.g. `out_dir = "/spaces/gerrit/projects/adme/datasets/sahgp/nextflow-out"`
+1) Create your sample sheet. E.g. `NA12878.samplesheet.csv`.
+2) Modify your `nextflow.config` to read the `NA12878.samplesheet.tsv` and specify the output directory e.g. `out_dir = "/projects/datasets/NA12878/nextflow-out"`
 3) Run the workflow
 ```
-nextflow -log nextflow.log run -w /spaces/gerrit/projects/adme/datasets/sahgp/nextflow-work -c nextflow.config main.nf -profile wits -with-report sahgp.report.html -with-trace -with-timeline sahgp.timeline.html -resume
+nextflow -log nextflow.log run -w /projects/datasets/NA12878/nextflow-work -c nextflow.config main.nf -profile ilifu -with-report NA12878.report.html -with-trace -with-timeline NA12878.timeline.html -resume
 ```
 
 ## Output
