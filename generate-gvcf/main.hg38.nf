@@ -369,7 +369,7 @@ autosome_calls.mix(mt_calls,x_par1_calls,x_nonpar_calls,x_par2_calls,x_calls,y_p
 
 process combine_gVCFs {
      tag { "${params.project_name}.${sample_id}.cCgVCF" }
-     memory { 4.GB * task.attempt }
+     memory { 8.GB * task.attempt }
      label 'gatk'
      publishDir "${params.out_dir}/${sample_id}", mode: 'copy', overwrite: false
 
@@ -381,17 +381,17 @@ process combine_gVCFs {
 	   set val(sample_id), file("${sample_id}.g.vcf.gz.tbi") into combine_calls_indexes
 
      script:
-     mem = task.memory.toGiga() - 2
+     mem = task.memory.toGiga() - 4
      if (gvcf.size() == 29) // working with a male sample
      """
-     gatk --java-options "-XX:+UseSerialGC -Xmx${mem}"  \
+     gatk --java-options "-XX:+UseSerialGC -Xms1g -Xmx${mem}g"  \
      SortVcf \
      -I ${sample_id}.X_PAR1.g.vcf.gz \
      -I ${sample_id}.X_PAR2.g.vcf.gz \
      -I ${sample_id}.X_nonPAR.g.vcf.gz \
      -O ${sample_id}.X.g.vcf.gz
 
-     gatk --java-options "-Xms1g -Xmx${mem}g"  \
+     gatk --java-options "-XX:+UseSerialGC -Xms1g -Xmx${mem}g"  \
      SortVcf \
      -I ${sample_id}.Y_PAR1.g.vcf.gz \
      -I ${sample_id}.Y_PAR2.g.vcf.gz \
@@ -424,7 +424,7 @@ process combine_gVCFs {
      echo ${sample_id}.Y.g.vcf.gz >> ${sample_id}.gvcf.list
      echo "${gvcf.join('\n')}" | grep "\\.MT\\.g\\.vcf\\.gz" >> ${sample_id}.gvcf.list
     
-     gatk --java-options "-Xms1g -Xmx${mem}g"  \
+     gatk --java-options "-XX:+UseSerialGC -Xms1g -Xmx${mem}g"  \
      GatherVcfs \
      -I ${sample_id}.gvcf.list \
      -O ${sample_id}.g.vcf.gz # GatherVCF does not index the VCF. The VCF will be indexed in the next tabix operation.
@@ -458,7 +458,7 @@ process combine_gVCFs {
      echo "${gvcf.join('\n')}" | grep "\\.X\\.g.vcf.gz" >> ${sample_id}.gvcf.list
      echo "${gvcf.join('\n')}" | grep "\\.MT\\.g\\.vcf\\.gz" >> ${sample_id}.gvcf.list
 
-     gatk --java-options "-Xms1g -Xmx${mem}g"  \
+     gatk --java-options "-XX:+UseSerialGC -Xms1g -Xmx${mem}g"  \
      GatherVcfs \
      -I ${sample_id}.gvcf.list \
      -O ${sample_id}.g.vcf.gz # GatherVCF does not index the VCF. The VCF will be indexed in the next tabix operation.
